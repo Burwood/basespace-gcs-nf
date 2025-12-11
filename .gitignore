@@ -1,0 +1,7 @@
+# Logs
+*.log.*
+.nextflow.log
+
+# Nextflow wrking dirs
+.nextflow/*
+work/*
