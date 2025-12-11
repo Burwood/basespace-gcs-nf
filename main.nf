@@ -7,11 +7,23 @@ nextflow.enable.dsl=2
  * that queries the BaseSpace API.
  * * Format: [basespace_file_id, gcs_output_path]
  */
+
+params.input_files = null
+params.outdir = null
+
 workflow {
+
+    if (!params.outdir) {
+        error "Out directory is required.  Please specify"
+
+    }
+
+    log.info "Out directory: ${params.outdir}"
+
     Channel
         .of(
             [ '42274677162', 'gs://a-test-output/2025WW01450_S8_L001_R1_001.fastq.gz' ],
-            [ '42274677163', 'gs://a-test-output/2025WW01450_S8_L001_R2_001.fastq.gz ' ]
+            [ '42274677163', 'gs://a-test-output/2025WW01450_S8_L001_R2_001.fastq.gz' ]
         )
         .set { bs_files_ch }
 
@@ -29,6 +41,7 @@ process TRANSFER_BS_TO_GCS {
     output:
     val gcs_output_uri, emit: gcs_path
 
+    script:
     """
     # 1. Download the file from BaseSpace using the BaseSpace CLI.
     # The 'bs download' command is used, which places the file in the current directory.
@@ -47,16 +60,17 @@ process TRANSFER_BS_TO_GCS {
     fi
 
     # 2. Upload the file to Google Cloud Storage.
-    echo "Uploading \$local_filename to $gcs_output_uri..."
+    echo "Uploading \$local_filename to ${params.outdir}"
 
     # Use gsutil (part of gcloud) to perform the copy
-    gsutil cp "\$local_filename" "$gcs_output_uri"
+
+    gsutil cp "\$local_filename" "${params.outdir}/\$local_filename"
 
     if [ \$? -ne 0 ]; then
-        echo "Error: GCS upload failed for $gcs_output_uri."
+        echo "Error: GCS upload failed for ${params.outdir}."
         exit 1
     fi
 
-    echo "Transfer complete for $bs_file_id to $gcs_output_uri."
+    echo "Transfer complete for $bs_file_id to ${params.outdir}."
     """
 }
