@@ -3,6 +3,7 @@ nextflow.enable.dsl=2
 
 params.input_files = null
 params.outdir = null
+params.container_image = null
 
 workflow {
 
@@ -25,7 +26,7 @@ workflow {
 
 process TRANSFER_BS_TO_GCS {
     // Docker container that has 'bs' and 'gcloud' installed
-    container 'us-central1-docker.pkg.dev/asu-ap-gap-data-opstest-18c2/bs-gcs/client:latest'
+    container params.container_image
     
     input:
     val (bs_file_id)
