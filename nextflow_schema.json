@@ -1,0 +1,33 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/burwood/basespace-gcs-nf/addd-seqera-config-json/nextflow_schema.json",
+    "title": "Basespace to Google Cloud Storage Pipeline Parameters",
+    "description": "A pipeline to copy samples from Basespace Sequence Hub to Google Cloud Storage",
+    "type": "object",
+    "$defs": {
+        "input_output_options": {
+            "title": "Input/output options",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "Define where the pipeline should find input data and save output data.",
+            "required": ["input_files", "outdir"],
+            "properties": {
+                "input_files": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "List of Basespace Sequence Hub File IDs",
+                    "help_text": "You will need to provide a list of sample names from Basespace Sequence Hub",
+                    "title": "Input Samplesheet (Required)"
+                },
+                "outdir": {
+                    "type": "string",
+                    "enum": ["gs://a-test-output/11"],
+                    "default": "gs://a-test-output/11",
+                    "description": "The output directory where the results will be saved",
+                    "title": "Google Cloud Storage Output location",
+                    "fa_icon": "fas fa-folder-open"
+                }
+            }
+        }
+    }
+}
