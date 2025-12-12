@@ -1,45 +1,37 @@
 // main.nf
 nextflow.enable.dsl=2
 
-/*
- * This channel will hold the BaseSpace file ID and the desired output file name.
- * In a real pipeline, this channel would be populated by a previous process
- * that queries the BaseSpace API.
- * * Format: [basespace_file_id, gcs_output_path]
- */
-
 params.input_files = null
 params.outdir = null
 
 workflow {
 
-    if (!params.outdir) {
-        error "Out directory is required.  Please specify"
-
+    if (!params.input_files) {
+        error "Input files are required.  Please specify"
     }
 
+    if (!params.outdir) {
+        error "Out directory is required.  Please specify"
+    }
+
+    log.info "Files to copy from Basespace Sequence Hub : ${params.input_files}"
     log.info "Out directory: ${params.outdir}"
 
-    Channel
-        .of(
-            [ '42274677162', 'gs://a-test-output/2025WW01450_S8_L001_R1_001.fastq.gz' ],
-            [ '42274677163', 'gs://a-test-output/2025WW01450_S8_L001_R2_001.fastq.gz' ]
-        )
-        .set { bs_files_ch }
+    channel.fromList(params.input_files).set { bs_files_ch }
 
     // Execute the transfer process for each file
     TRANSFER_BS_TO_GCS(bs_files_ch)
 }
 
 process TRANSFER_BS_TO_GCS {
-    // We assume the Docker container has 'bs' and 'gcloud' installed
+    // Docker container that has 'bs' and 'gcloud' installed
     container 'us-central1-docker.pkg.dev/asu-ap-gap-data-opstest-18c2/bs-gcs/client:latest'
     
     input:
-    tuple val(bs_file_id), val(gcs_output_uri)
+    val (bs_file_id)
 
     output:
-    val gcs_output_uri, emit: gcs_path
+    val params.outdir, emit: gcs_path
 
     script:
     """
@@ -63,7 +55,6 @@ process TRANSFER_BS_TO_GCS {
     echo "Uploading \$local_filename to ${params.outdir}"
 
     # Use gsutil (part of gcloud) to perform the copy
-
     gsutil cp "\$local_filename" "${params.outdir}/\$local_filename"
 
     if [ \$? -ne 0 ]; then
