@@ -3,6 +3,7 @@ nextflow.enable.dsl=2
 
 params.input_files = null
 params.outdir = null
+params.container_image = null
 
 workflow {
 
@@ -21,17 +22,21 @@ workflow {
 
     // Execute the transfer process for each file
     TRANSFER_BS_TO_GCS(bs_files_ch)
+    
 }
 
 process TRANSFER_BS_TO_GCS {
     // Docker container that has 'bs' and 'gcloud' installed
-    container 'us-central1-docker.pkg.dev/asu-ap-gap-data-opstest-18c2/bs-gcs/client:latest'
+    container params.container_image
+
+    publishDir params.outdir, mode: 'copy'
     
     input:
     val (bs_file_id)
 
     output:
-    val params.outdir, emit: gcs_path
+    path '*.fastq.gz'
+    path '*.json'
 
     script:
     """
@@ -51,17 +56,5 @@ process TRANSFER_BS_TO_GCS {
         exit 1
     fi
 
-    # 2. Upload the file to Google Cloud Storage.
-    echo "Uploading \$local_filename to ${params.outdir}"
-
-    # Use gsutil (part of gcloud) to perform the copy
-    gsutil cp "\$local_filename" "${params.outdir}/\$local_filename"
-
-    if [ \$? -ne 0 ]; then
-        echo "Error: GCS upload failed for ${params.outdir}."
-        exit 1
-    fi
-
-    echo "Transfer complete for $bs_file_id to ${params.outdir}."
     """
 }
