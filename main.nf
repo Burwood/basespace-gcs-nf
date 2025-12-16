@@ -36,6 +36,7 @@ process TRANSFER_BS_TO_GCS {
 
     output:
     path '*.fastq.gz'
+    path '*.fastq'
     path '*.json'
 
     script:
