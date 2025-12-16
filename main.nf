@@ -48,6 +48,9 @@ process TRANSFER_BS_TO_GCS {
     # Get the file name from the BaseSpace metadata
     local_filename=\$(bs file get -i $bs_file_id --template '{{.Name}}')
 
+    # Load auth from env vars.
+    bs config load
+
     # Download the file
     bs download file -i $bs_file_id --output ./
 
